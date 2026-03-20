@@ -1,0 +1,38 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: komodo_mongo
+    restart: unless-stopped
+    volumes:
+      - ./mongo-data:/data/db
+
+  core:
+    image: ghcr.io/moghtech/komodo-core:latest
+    container_name: komodo_core
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "9120:9120"
+    environment:
+      - KOMODO_DATABASE_ADDRESS=mongo:27017
+      - KOMODO_FIRST_SERVER=http://periphery:8120
+      - KOMODO_FIRST_SERVER_NAME=Local-Server
+      - KOMODO_LOCAL_AUTH=true
+      - KOMODO_INIT_ADMIN_USERNAME=${KOMODO_ADMIN_USER}
+      - KOMODO_INIT_ADMIN_PASSWORD=${KOMODO_ADMIN_PASS}
+      - KOMODO_PASSKEY=${KOMODO_PASSKEY}
+    volumes:
+      - ./config:/config
+
+  periphery:
+    image: ghcr.io/moghtech/komodo-periphery:latest
+    container_name: komodo_periphery
+    restart: unless-stopped
+    environment:
+      - PERIPHERY_PORT=8120
+      - PERIPHERY_SSL_ENABLED=false # SSL is handled by Cloudflare Tunnel
+      - PERIPHERY_PASSKEYS=${KOMODO_PASSKEY}
+    volumes:
+      # Allows Komodo to manage local Docker containers
+      - /var/run/docker.sock:/var/run/docker.sock
