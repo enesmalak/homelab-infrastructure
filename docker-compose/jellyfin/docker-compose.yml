@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    
+    ports:
+      - "8096:8096" # HTTP Web-UI
+      - "8920:8920" # HTTPS (optional)
+
+    devices:
+      # Hardware Acceleration (Intel Quick Sync)
+      - /dev/dri:/dev/dri
+
+    environment:
+      # Use an environment variable for the host IP/URL
+      - JELLYFIN_PublishedServerUrl=http://${HOST_IP}:8096
+
+    volumes:
+      - ./config:/config
+      - ./cache:/cache
+      # Centralized Media storage (e.g., from a RAID array)
+      - /mnt/raid/media:/media:ro
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
