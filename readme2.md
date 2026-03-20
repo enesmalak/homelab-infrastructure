@@ -56,3 +56,4 @@ Data integrity is ensured through a structured and automated backup strategy:
 - **Jellyfin** → https://kino.malakmedia.de  
 - **Audiobookshelf** → https://audio.malakmedia.de  
 - **BentoPDF** → https://pdf.malakmedia.de
+- **IT-Tools** → https://tools.malakmedia.de
