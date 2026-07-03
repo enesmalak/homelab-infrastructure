@@ -22,7 +22,7 @@ Storage is managed using MDADM (Linux Software RAID), optimized for a mixed set 
 ## Networking & Security
 The network follows a Zero Trust approach for secure external access.
 
-- **Access Control:** Services are exposed via Cloudflare Tunnels, removing the need for open inbound ports and minimizing the attack surface.
+- **Access Control:** Services are exposed via Cloudflare Tunnels, removing the need for open inbound ports and minimizing the attack surface. A `cloudflared` connector container maintains the outbound-only tunnel to Cloudflare's edge.
 - **Traffic Routing:** Incoming traffic is securely routed through encrypted tunnels to internal services using dedicated subdomains under malakmedia.de.
 - **Network Filtering:** AdGuard Home (LXC) acts as the primary DNS resolver, providing network-wide ad blocking and DNS-over-HTTPS (DoH).
 
@@ -33,9 +33,12 @@ The network follows a Zero Trust approach for secure external access.
 - **Scrutiny (Docker):** Web UI and API for monitoring S.M.A.R.T. data, providing disk health insights and alerting.
 - **AdGuard Home (LXC):** Network-wide DNS resolver with ad-blocking, tracking protection, and DNS-over-HTTPS (DoH).
 - **Home Assistant (LXC):** Smart home automation platform running in an LXC container for low overhead and direct USB passthrough (e.g. Zigbee/Bluetooth).
+- **Cloudflared (Docker):** Cloudflare Tunnel connector providing secure, outbound-only ingress with no exposed inbound ports.
+- **Observability (Docker):** Prometheus exporter stack — **node-exporter** (host metrics), **cAdvisor** (per-container metrics), and **prometheus-pve-exporter** (Proxmox VE metrics) — scraped by an external Prometheus/Grafana instance.
 
 ### Media & Storage Optimization
 - **Jellyfin (Docker):** Self-hosted media server with Intel QuickSync support (/dev/dri) for hardware-accelerated transcoding.
+- **Immich (Docker):** Self-hosted photo and video backup with machine-learning features (facial recognition, object/CLIP search) backed by a pgvector database.
 - **Audiobookshelf (Docker):** Server for managing, tracking, and streaming audiobooks and podcasts.
 - **Unmanic (LXC):** Automated media optimization worker that scans libraries and converts video files to H.265/HEVC to improve storage efficiency.
 
@@ -44,6 +47,12 @@ The network follows a Zero Trust approach for secure external access.
 - **Mealie (Docker):** Recipe management and meal planning application.
 - **BentoPDF (Docker):** Lightweight web app for local PDF processing (merge, split, compress).
 - **IT-Tools (Docker):** Collection of web-based utilities for everyday IT and development tasks.
+
+### Self-Hosted AI
+A fully on-premise AI stack — no user or conversation data leaves the network.
+- **Honcho (Docker):** Self-hosted, OpenAI-compatible memory and personalization backend (Postgres + pgvector, Redis, and a dedicated embeddings service). Runs locally in place of the hosted cloud so each project's data stays isolated on-prem.
+- **Open WebUI (Docker):** Web front-end for interacting with local and API-based LLMs.
+- **RPG App (Docker):** A custom, self-built AI-driven tabletop-RPG engine (FastAPI). Attaches to the Honcho network for persistent, per-campaign NPC and world memory — an example of building on top of the self-hosted AI backend rather than only deploying off-the-shelf services.
 
 ## Backup and Disaster Recovery
 Data integrity is ensured through a structured and automated backup strategy:

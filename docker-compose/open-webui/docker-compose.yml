@@ -1,0 +1,13 @@
+# Open WebUI — self-hosted chat front-end for local and API-based LLMs.
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3001:8080"
+    volumes:
+      - open-webui:/app/backend/data
+
+volumes:
+  open-webui:

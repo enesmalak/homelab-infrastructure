@@ -1,0 +1,42 @@
+# Prometheus exporters — scraped by an external Prometheus/Grafana instance.
+# Exposes host, container, and Proxmox-level metrics.
+services:
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.rapl'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+  pve-exporter:
+    image: prompve/prometheus-pve-exporter:latest
+    container_name: pve_exporter
+    restart: unless-stopped
+    ports:
+      - "9221:9221"
+    # Proxmox API token lives in pve.yml — copy pve.yml.example and fill it in.
+    volumes:
+      - ./pve.yml:/etc/prometheus/pve.yml:ro
