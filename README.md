@@ -52,7 +52,7 @@ The network follows a Zero Trust approach for secure external access.
 A fully on-premise AI stack — no user or conversation data leaves the network.
 - **Honcho (Docker):** Self-hosted, OpenAI-compatible memory and personalization backend (Postgres + pgvector, Redis, and a dedicated embeddings service). Runs locally in place of the hosted cloud so each project's data stays isolated on-prem.
 - **Open WebUI (Docker):** Web front-end for interacting with local and API-based LLMs.
-- **RPG App (Docker):** A custom, self-built AI-driven tabletop-RPG engine (FastAPI). Attaches to the Honcho network for persistent, per-campaign NPC and world memory — an example of building on top of the self-hosted AI backend rather than only deploying off-the-shelf services.
+- **RPG App (Docker):** A custom, self-built AI-narrated RPG — the largest project in this lab. An **engine-authoritative** design where deterministic Python (~59k LOC, 111 modules, 198 API routes) owns every rule and outcome while a **hybrid, multi-provider AI layer** (Claude / Gemini / DeepSeek, split into foreground narration and background state-parsing) handles prose. Features layered on-prem memory via Honcho, creature evolution and companion systems, a workshop with a visual node-editor, gather/craft/produce economies, and nearly **1,000 custom pixel-art icons**. → **[Full technical write-up](./docker-compose/rpg-app/README.md)**
 
 ## Backup and Disaster Recovery
 Data integrity is ensured through a structured and automated backup strategy:
