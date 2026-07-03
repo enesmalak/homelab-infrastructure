@@ -1,0 +1,31 @@
+# RPG App — a custom, self-built AI-driven tabletop-RPG engine (FastAPI backend).
+# Unlike the other stacks this is my own application, built from source. It
+# attaches to the self-hosted Honcho network for long-term NPC/campaign memory,
+# keeping all AI state on-prem.
+services:
+  rpg-app:
+    build: .
+    container_name: rpg-app
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./app:/app
+      - ./campaigns:/app/campaigns
+      - ./portraits:/app/portraits
+      - ./reports:/reports
+    env_file: .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/Berlin
+      # Use the self-hosted Honcho (honcho_default network) instead of the cloud.
+      # Each campaign is its own workspace; isolated per game.
+      - HONCHO_URL=http://honcho-api-1:8000
+    networks:
+      - default
+      - honcho
+
+networks:
+  honcho:
+    external: true
+    name: honcho_default

@@ -1,0 +1,9 @@
+# Proxmox VE API credentials for prometheus-pve-exporter.
+# Copy to pve.yml (gitignored) and fill in a dedicated read-only API token:
+#   Datacenter -> Permissions -> API Tokens -> Add
+# Grant the token PVEAuditor on / so it can only read metrics.
+default:
+  user: monitoring@pve
+  token_name: prometheus
+  token_value: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  verify_ssl: false

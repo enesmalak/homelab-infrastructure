@@ -1,0 +1,15 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    # Dashboard-managed tunnel: the ingress routes (*.malakmedia.de -> local
+    # service ports) are configured in the Cloudflare Zero Trust dashboard, not
+    # in this file. The tunnel token is the only local secret and lives in .env.
+    #   Zero Trust -> Networks -> Tunnels -> <tunnel> -> Configure
