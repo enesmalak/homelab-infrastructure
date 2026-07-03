@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   jellyfin:
     image: jellyfin/jellyfin:latest
@@ -21,8 +19,8 @@ services:
     volumes:
       - ./config:/config
       - ./cache:/cache
-      # Centralized Media storage (e.g., from a RAID array)
-      - /mnt/raid/media:/media:ro
+      # Centralized Media storage from the RAID 5 array
+      - /mnt/raid5/MEDIA:/media:ro
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8096/health"]
