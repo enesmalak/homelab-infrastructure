@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint YAML
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_data: |
+            extends: default
+            rules:
+              line-length: disable
+              document-start: disable
+              comments:
+                min-spaces-from-content: 1
+              truthy:
+                check-keys: false
+
+      - name: Validate compose files
+        run: |
+          # Stacks that build from source elsewhere (external build context) are
+          # documentation-only here and can't be config-validated in CI.
+          SKIP="honcho rpg-app"
+          fail=0
+          for f in docker-compose/*/docker-compose.yml; do
+            dir=$(basename "$(dirname "$f")")
+            if echo "$SKIP" | grep -qw "$dir"; then
+              echo "· skip (external build context): $dir"
+              continue
+            fi
+            # Provide placeholder env so env_file/${VAR} references resolve.
+            [ -f "$(dirname "$f")/.env.example" ] && cp "$(dirname "$f")/.env.example" "$(dirname "$f")/.env"
+            if docker compose -f "$f" config -q; then
+              echo "✓ valid: $dir"
+            else
+              echo "✗ INVALID: $dir"; fail=1
+            fi
+            rm -f "$(dirname "$f")/.env"
+          done
+          exit $fail
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"

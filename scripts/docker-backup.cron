@@ -1,0 +1,12 @@
+# Automated backup of all Docker service data + compose definitions.
+# Installed in root's crontab on the Proxmox host.
+#
+#   03:00  create a dated tarball of every container's data and compose stack
+#   03:30  prune tarballs older than 7 days (rolling retention)
+#
+# The destination (/mnt/backup/dump) lives on the dedicated RAID 1 array, which
+# is physically separate from the RAID 5 data array (see ../README.md).
+
+# m h  dom mon dow  command
+0  3  *   *   *    tar -czf /mnt/backup/dump/docker-backup-$(date +\%F).tar.gz /var/lib/docker/volumes /srv /opt /root/stack /root/docker
+30 3  *   *   *    find /mnt/backup/dump/ -name "docker-backup-*.tar.gz" -mtime +7 -exec rm {} \;

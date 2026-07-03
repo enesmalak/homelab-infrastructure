@@ -3,8 +3,37 @@
 ![Infra](https://img.shields.io/badge/Infra-Proxmox-orange)
 ![Containers](https://img.shields.io/badge/Stack-Docker%20%7C%20LXC-blue)
 ![Security](https://img.shields.io/badge/Security-Zero%20Trust-green)
+[![CI](https://github.com/enesmalak/homelab-infrastructure/actions/workflows/ci.yml/badge.svg)](https://github.com/enesmalak/homelab-infrastructure/actions/workflows/ci.yml)
 
 This repository documents the architecture and configuration of my Proxmox-based homelab, designed for high availability, secure remote access, and efficient storage utilization. The setup focuses on balancing performance, isolation, and maintainability.
+
+## Topology
+
+```mermaid
+flowchart TB
+    Internet(("Internet")) -->|outbound-only tunnel| CF["Cloudflare Edge<br/>*.malakmedia.de"]
+    CF -.encrypted tunnel.-> CFD["cloudflared connector"]
+
+    subgraph PVE["Proxmox VE Host"]
+        CFD --> Docker
+        subgraph Docker["Docker (orchestrated by Komodo)"]
+            Media["Media — Jellyfin · Immich · Audiobookshelf"]
+            Prod["Productivity — Paperless · Mealie · BentoPDF · IT-Tools"]
+            AI["Self-Hosted AI — Honcho · Open WebUI · RPG App"]
+            Obs["Observability — node-exporter · cAdvisor · pve-exporter"]
+        end
+        subgraph LXC["LXC (near-native hardware access)"]
+            AdGuard["AdGuard Home — DNS / DoH"]
+            HA["Home Assistant — USB passthrough"]
+            Unmanic["Unmanic — transcoding"]
+        end
+    end
+
+    Docker --> Storage["MDADM Software RAID"]
+    LXC --> Storage
+    Storage --> RAID5["RAID 5 — ~1.8 TB data"]
+    Storage --> RAID1["RAID 1 — ~430 GB backups"]
+```
 
 ## Infrastructure Overview
 The environment is managed using Proxmox VE with a hybrid virtualization approach, combining virtual machines and LXC containers.
@@ -18,6 +47,7 @@ Storage is managed using MDADM (Linux Software RAID), optimized for a mixed set 
 - **Data Array (RAID 5):** ~1.8 TB usable capacity, built from a combination of full disks and partitions to maximize available space while maintaining single-drive fault tolerance.
 - **Backup Array (RAID 1):** ~430 GB mirrored array dedicated to critical backups, physically separated from the main data array.
 - **Monitoring:** Disk health and S.M.A.R.T. metrics are monitored using Scrutiny.
+- **Configuration:** A sanitized array definition is included at [`storage/mdadm.conf.example`](./storage/mdadm.conf.example).
 
 ## Networking & Security
 The network follows a Zero Trust approach for secure external access.
@@ -55,11 +85,23 @@ A fully on-premise AI stack — no user or conversation data leaves the network.
 - **RPG App (Docker):** A custom, self-built AI-narrated RPG — the largest project in this lab. An **engine-authoritative** design where deterministic Python (~59k LOC, 111 modules, 198 API routes) owns every rule and outcome while a **hybrid, multi-provider AI layer** (Claude / Gemini / DeepSeek, split into foreground narration and background state-parsing) handles prose. Features layered on-prem memory via Honcho, creature evolution and companion systems, a workshop with a visual node-editor, gather/craft/produce economies, and a growing library of **~1,000 custom pixel-art icons** (heading toward ~1,500). → **[Full technical write-up](./docker-compose/rpg-app/README.md)**
 
 ## Backup and Disaster Recovery
-Data integrity is ensured through a structured and automated backup strategy:
+Data integrity is ensured through a structured and automated backup strategy — see the actual cron in [`scripts/docker-backup.cron`](./scripts/docker-backup.cron):
 
-- **Automation:** Daily backups scheduled at 03:30.
-- **Retention:** 7-day rolling retention policy.
-- **Storage:** Backup archives are stored on a dedicated RAID 1 array, ensuring availability in case of primary array failure.
+- **Automation:** A dated tarball of every container's data and compose stack is created daily at **03:00**.
+- **Retention:** A **03:30** prune enforces a 7-day rolling retention policy.
+- **Storage:** Backup archives are written to a dedicated RAID 1 array, physically separate from the primary data array, ensuring availability in case of primary-array failure.
+
+## Deployment & Reproducibility
+- **GitOps-style management:** Komodo watches this repository and deploys each stack from its `docker-compose/<service>/` directory, so the tracked compose files are the source of truth for what runs.
+- **Secrets stay out of Git:** every stack ships a committed `*.env.example` (and `pve.yml.example`); real values live in gitignored `.env` / `pve.yml` files on the host only.
+- **Pinned images:** application images are pinned to explicit versions for reproducible, deliberate upgrades; only intentionally-rolling tags (e.g. `open-webui:main`, `scrutiny:master-omnibus`, `cloudflared:latest`) track upstream. Datastores (Postgres, Redis, Mongo) are likewise pinned.
+- **CI:** every push and PR is linted (yamllint), compose-validated (`docker compose config`), and secret-scanned (gitleaks) via GitHub Actions.
+
+## Security Trade-offs
+A homelab balances convenience against isolation; the deliberate trade-offs here are documented rather than hidden:
+- **No inbound ports.** All external access is outbound-only through Cloudflare Tunnels; the host exposes nothing to the internet directly.
+- **Privileged containers are scoped and understood.** cAdvisor (privileged) and Scrutiny (`SYS_ADMIN`/`SYS_RAWIO`, raw disk devices) require elevated access to read host and disk metrics; Komodo's periphery agent mounts `docker.sock` to manage containers. These are limited to observability/orchestration roles.
+- **Internal datastores are not exposed.** Databases and caches bind to loopback or the internal Docker network only and are never published to the LAN.
 
 ## Service Endpoints
 - **Jellyfin** → https://kino.malakmedia.de  

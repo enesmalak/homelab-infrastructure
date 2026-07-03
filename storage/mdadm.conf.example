@@ -1,0 +1,11 @@
+# /etc/mdadm/mdadm.conf  (array UUIDs redacted)
+#
+# Two MDADM software-RAID arrays back the storage tier:
+#   md0 — RAID 5 data array   (~1.8 TB usable, single-drive fault tolerance)
+#   md1 — RAID 1 backup array (~430 GB mirror, holds the daily backup dumps)
+#
+# Regenerate the real file with:  mdadm --detail --scan >> /etc/mdadm/mdadm.conf
+# Health / SMART is monitored by Scrutiny (see ../docker-compose/scrutiny).
+
+ARRAY /dev/md/0  metadata=1.2  UUID=xxxxxxxx:xxxxxxxx:xxxxxxxx:xxxxxxxx  name=pve:0
+ARRAY /dev/md/1  metadata=1.2  UUID=xxxxxxxx:xxxxxxxx:xxxxxxxx:xxxxxxxx  name=pve:1

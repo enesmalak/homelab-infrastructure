@@ -1,9 +1,9 @@
 services:
   jellyfin:
-    image: jellyfin/jellyfin:latest
+    image: jellyfin/jellyfin:10.11.10
     container_name: jellyfin
     restart: unless-stopped
-    
+
     ports:
       - "8096:8096" # HTTP Web-UI
       - "8920:8920" # HTTPS (optional)
