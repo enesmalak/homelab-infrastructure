@@ -123,8 +123,10 @@ results but does not compute them.
 
 Visual identity is a first-class part of the product, not decoration:
 
-- **~1,000 custom pixel-art icons** (996 and counting) — locally AI-generated and
-  then **hand-edited** — for items, materials, creatures, and UI.
+- **~1,000 custom pixel-art icons live today** (996), with **nearly 500 more**
+  already generated and queued for hand-editing — heading toward ~1,500. Each is
+  **locally AI-generated and then hand-edited** — for items, materials, creatures,
+  and UI.
 - **91 hand-placed map tiles** and a portrait/album system.
 - A deliberate design language: pixel art as game identity, story-first layout,
   reduced-motion and accessibility support, and visual spectacle **reserved for
