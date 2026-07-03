@@ -11,7 +11,7 @@ This repository documents the architecture and configuration of my Proxmox-based
 
 ```mermaid
 flowchart TB
-    Internet(("Internet")) -->|outbound-only tunnel| CF["Cloudflare Edge<br/>*.malakmedia.de"]
+    Internet(("Internet")) -->|outbound-only tunnel| CF["Cloudflare Edge<br/>*.example.com"]
     CF -.encrypted tunnel.-> CFD["cloudflared connector"]
 
     subgraph PVE["Proxmox VE Host"]
@@ -53,7 +53,7 @@ Storage is managed using MDADM (Linux Software RAID), optimized for a mixed set 
 The network follows a Zero Trust approach for secure external access.
 
 - **Access Control:** Services are exposed via Cloudflare Tunnels, removing the need for open inbound ports and minimizing the attack surface. A `cloudflared` connector container maintains the outbound-only tunnel to Cloudflare's edge.
-- **Traffic Routing:** Incoming traffic is securely routed through encrypted tunnels to internal services using dedicated subdomains under malakmedia.de.
+- **Traffic Routing:** Incoming traffic is securely routed through encrypted tunnels to internal services using dedicated subdomains under a private domain (shown as `example.com` in this repo).
 - **Network Filtering:** AdGuard Home (LXC) acts as the primary DNS resolver, providing network-wide ad blocking and DNS-over-HTTPS (DoH).
 
 ## Deployed Services
@@ -103,8 +103,13 @@ A homelab balances convenience against isolation; the deliberate trade-offs here
 - **Privileged containers are scoped and understood.** cAdvisor (privileged) and Scrutiny (`SYS_ADMIN`/`SYS_RAWIO`, raw disk devices) require elevated access to read host and disk metrics; Komodo's periphery agent mounts `docker.sock` to manage containers. These are limited to observability/orchestration roles.
 - **Internal datastores are not exposed.** Databases and caches bind to loopback or the internal Docker network only and are never published to the LAN.
 
-## Service Endpoints
-- **Jellyfin** → https://kino.malakmedia.de  
-- **Audiobookshelf** → https://audio.malakmedia.de  
-- **BentoPDF** → https://pdf.malakmedia.de
-- **IT-Tools** → https://tools.malakmedia.de
+## Screenshots
+_Dashboard screenshots (Grafana, Komodo, Scrutiny) coming soon._
+
+<!-- TODO: add dashboard screenshots here
+![Grafana](docs/screenshots/grafana.png)
+![Komodo](docs/screenshots/komodo.png)
+![Scrutiny](docs/screenshots/scrutiny.png)
+-->
+
+Services are not linked publicly by design — external access is gated behind Cloudflare Tunnels rather than advertised URLs.
