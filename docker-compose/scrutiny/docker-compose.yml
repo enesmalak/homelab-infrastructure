@@ -12,11 +12,11 @@ services:
       - ./influxdb:/opt/scrutiny/influxdb
     environment:
       - SCRUTINY_WEB_INFLUXDB_HOST=localhost
-    
+
     cap_add:
       - SYS_RAWIO # Allows S.M.A.R.T. monitoring
       - SYS_ADMIN # Allows disk querying
-    
+
     devices:
       - "/dev/sda:/dev/sda" # System SSD
       - "/dev/sdb:/dev/sdb" # RAID Array Disk 1
